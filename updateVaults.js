@@ -31,7 +31,9 @@ async function setLastUpdateTime(vault) {
 
 async function getPrizePoolData(prizePoolContract, vaultAddress, lastAwardedDrawId) {
   try {
+   // console.log("trying for contribution of",vaultAddress,"last awarded draw",lastAwardedDrawId)
     const contributedBetween = await prizePoolContract.getContributedBetween(vaultAddress, lastAwardedDrawId - 6, lastAwardedDrawId);
+    
     return ethers.utils.formatUnits(contributedBetween, 18);
   } catch (error) {
     console.error('Error fetching prize pool data:', error);
@@ -52,10 +54,10 @@ async function getContributed24h(prizePoolContract, vaultAddress, lastAwardedDra
 
 
 
-async function updateContributedBetween(vaults, prizePoolContract, lastAwardedDrawId, prizePoolAddress) {
+async function updateContributedBetween(vaults, prizePoolContract, lastAwardedDrawId, chainName, chainId, prizePoolAddress) {
   // Fetch 7d prize data
-const prizeData = await fetch7dPrizeData(prizePoolAddress);
-  
+const prizeData = await fetch7dPrizeData(chainId,prizePoolAddress);
+ // console.log("prize data",prizeData)
   if (!prizeData) {
     console.error('Failed to fetch 7d prize data, returning existing vault data.');
     return vaults; // Return original vaults if fetching prize data fails
@@ -82,7 +84,7 @@ if (currentTime - lastUpdateTime >= 6 * 60 * 60 * 1000) {
 
       
 try {
-ownerInfo = await OwnerInfo(vault.vault,PROVIDERS["OPTIMISM"])
+ownerInfo = await OwnerInfo(vault.vault,PROVIDERS[chainName])
 vault.gnosis = ownerInfo
 }catch(e){console.log("error getting vault owner info",e)}
 
@@ -101,9 +103,9 @@ vault.gnosis = ownerInfo
 
 
 
-async function fetch7dPrizeData(prizePoolAddress) {
+async function fetch7dPrizeData(chainId,prizePoolAddress) {
   try {
-    const url = `https://poolexplorer.xyz/vault-totals-10-${prizePoolAddress}`;
+    const url = `https://poolexplorer.xyz/vault-totals-${chainId}-${prizePoolAddress}`;
 console.log("fetching url",url)
     const response = await axios.get(url);
     return response.data;
@@ -128,7 +130,10 @@ function getVault7dPrize(prizeData, vaultAddress, lastAwardedDrawId) {
 
 
 
-async function UpdateV5Vaults(vaults, prizePool) {
+async function UpdateV5Vaults(vaults, prizePool, chainName, chainId) {
+
+//console.log("updating vault info")
+//console.log(vaults, prizePool, chainName, chainId)
  // Filter out blacklisted vaults
   vaults = vaults.filter(vault => !BLACKLIST.includes(vault.vault.toLowerCase()));
 
@@ -146,6 +151,7 @@ async function UpdateV5Vaults(vaults, prizePool) {
     existingData = [];
   }
 try{
+// todo multichain coingecko id
   const chain = 'optimistic-ethereum';
   const contractAddresses = existingData.map(vault => vault.asset); // Initialize with existing asset addresses
 
@@ -161,13 +167,13 @@ try{
 // vault owner safety
 let gnosis 
 try {
-gnosis = await OwnerInfo(newVault.vault,PROVIDERS["OPTIMISM"])
+gnosis = await OwnerInfo(newVault.vault,PROVIDERS[chainName])
 
 }catch(e){console.log("error getting vault owner info",e)}
 
 
 
-const contract = new ethers.Contract(newVault.vault, ABI.VAULT, PROVIDERS["OPTIMISM"]);
+const contract = new ethers.Contract(newVault.vault, ABI.VAULT, PROVIDERS[chainName]);
 try {
   const asset = await contract.asset();
   const name = await contract.name();
@@ -175,7 +181,7 @@ try {
   const decimals = await contract.decimals();
   const owner = await contract.owner(); 
   const liquidationPair = await contract.liquidationPair(); 
-  const assetContract = new ethers.Contract(asset, ABI.ERC20, PROVIDERS["OPTIMISM"]);
+  const assetContract = new ethers.Contract(asset, ABI.ERC20, PROVIDERS[chainName]);
   const assetSymbol = await assetContract.symbol();
   
   existingData.push({ 
@@ -196,12 +202,14 @@ try {
     }
   }
 
-  console.log('contract add', contractAddresses);
+ // console.log('contract add', contractAddresses);
 
 // Step 3: Fetch token prices from CoinGecko
 if (contractAddresses.length > 0) {
+let geckoPath
   try {
-    const response = await axios.get(`https://api.coingecko.com/api/v3/simple/token_price/${chain}`, {
+    geckoPath = `https://api.coingecko.com/api/v3/simple/token_price/${chain}`
+    const response = await axios.get(geckoPath, {
       params: {
         contract_addresses: contractAddresses.join(','),
         vs_currencies: 'usd',
@@ -216,13 +224,13 @@ if (contractAddresses.length > 0) {
       }
     });
   } catch (error) {
-    console.error('Error fetching token prices from CoinGecko:', error);
+    console.error('Error fetching token prices from CoinGecko:', geckoPath,' for ',contractAddresses.join(','));
   }
 }
 
 // Fetch the last awarded draw id once
   let lastAwardedDrawId;
-  const prizePoolContract = new ethers.Contract(prizePool, ABI.PRIZEPOOL, PROVIDERS["OPTIMISM"]);
+  const prizePoolContract = new ethers.Contract(prizePool, ABI.PRIZEPOOL, PROVIDERS[chainName]);
   try {
     lastAwardedDrawId = await prizePoolContract.getLastAwardedDrawId();
   } catch (error) {
@@ -231,7 +239,7 @@ if (contractAddresses.length > 0) {
   }
 
   // Update contributedBetween for each vault if more than 24 hours have passed
-  const updatedVaults = await updateContributedBetween(existingData, prizePoolContract, lastAwardedDrawId, prizePool);
+  const updatedVaults = await updateContributedBetween(existingData, prizePoolContract, lastAwardedDrawId, chainName, chainId, prizePool);
 
 
   // Step 4: Write updated data back to file
@@ -248,18 +256,31 @@ if (contractAddresses.length > 0) {
 
 // Example usage:/
 /*
+
+  | [
+31|go  |   {
+31|go  |     vault: '0x8f8484f30f7a72c8059e6bd709f898606e38deda',
+31|go  |     poolers: 1205
+31|go  |   },
+31|go  |   {
+31|go  |     vault: '0x383e8d88de4e3999b43c51ca1819516617260e99',
+31|go  |     poolers: 1333
+31|go  |   },
+31|go  |   { vault: '0x1b751a1f3b558173df9832d4564e6b38db7552c6', poolers: 1 }
+31|go  | ] 0x5e1b40e4249644a7d7589d1197ad0f1628e79fb1 OPSEPOLIA 11155420
+*/
 (async () => {
   try {
     const vaults = [
-      { vault: '0xe3b3a464ee575e8e25d2508918383b89c832f275', poolers: 160 },
-      { vault: '0xce8293f586091d48a0ce761bbf85d5bcaa1b8d2b', poolers: 10 },
-      { vault: '0x29cb69d4780b53c1e5cd4d2b817142d2e9890715', poolers: 44 },
+      { vault: '0x383e8d88de4e3999b43c51ca1819516617260e99', poolers: 1333 },
+      { vault: '0x8f8484f30f7a72c8059e6bd709f898606e38deda', poolers: 1205 },
+      { vault: '0x1b751a1f3b558173df9832d4564e6b38db7552c6', poolers: 1 },
     ];
-    const updatedVaults = await UpdateV5Vaults(vaults, '0xe32e5E1c5f0c80bD26Def2d0EA5008C107000d6A');
+    const updatedVaults = await UpdateV5Vaults(vaults, '0x31547D3c38F2F8dC92421C54B173F3B27Ab26EbB'.toLowerCase(),"OPSEPOLIA",11155420);
     console.log(updatedVaults);
   } catch (error) {
     console.error('An error occurred:', error);
   }
 })();
-*/
+
 module.exports = {UpdateV5Vaults}

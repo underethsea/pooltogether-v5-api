@@ -1,27 +1,28 @@
 const pgp = require("pg-promise")();
 const { dbFinal } = require('./dbConnection.js'); // Ensure this path is correct for your project setup
 
-async function PrizeLeaderboard() {
+async function PrizeLeaderboard(network, prizepool) {
     try {
         const query = `
-            SELECT 
-                winner as p, 
-                COUNT(DISTINCT draw) AS draws, 
+            SELECT
+                winner as p,
+                COUNT(DISTINCT draw) AS draws,
                 COUNT(DISTINCT draw || '-' || vault || '-' || CAST(tier AS TEXT)) AS prizes,
                 SUM(payout::NUMERIC) AS won
-            FROM 
+            FROM
                 claims
-            GROUP BY 
+            WHERE
+                network = $1 AND prizepool = $2 and payout::numeric > 0
+            GROUP BY
                 p
-            ORDER BY 
+            ORDER BY
                 won DESC
-            LIMIT 
+            LIMIT
                 1000;
         `;
 
-        // Using 'dbFinal' as the database connection object
-        const result = await dbFinal.any(query);
-        console.log("PrizeLeaderboard query executed successfully, returning ", result.length);
+        const result = await dbFinal.any(query, [network, prizepool.toLowerCase()]);
+        console.log("PrizeLeaderboard query executed successfully, returning ", result.length, "results.");
         return result;
     } catch (error) {
         console.error("Error executing PrizeLeaderboard query:", error);

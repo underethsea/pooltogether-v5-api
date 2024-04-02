@@ -1,7 +1,7 @@
 [
   {
     "vault": "0xe3b3a464ee575e8e25d2508918383b89c832f275",
-    "poolers": 326,
+    "poolers": 375,
     "name": "Prize USDC.e - Aave",
     "symbol": "pUSDC.e",
     "decimals": 6,
@@ -13,14 +13,14 @@
       "required": 2,
       "total": 3
     },
-    "price": 1.002,
-    "contributed7d": "3062.186049468058125064",
-    "contributed24h": "942.838890964961395917",
-    "won7d": "988.9589000000001"
+    "price": 0.999406,
+    "contributed7d": "3422.767251275617433624",
+    "contributed24h": "856.819504771742738557",
+    "won7d": "1319.9591"
   },
   {
     "vault": "0x29cb69d4780b53c1e5cd4d2b817142d2e9890715",
-    "poolers": 51,
+    "poolers": 48,
     "name": "Prize WETH - Aave",
     "symbol": "pWETH",
     "decimals": 18,
@@ -32,14 +32,14 @@
       "required": 2,
       "total": 3
     },
-    "price": 3823.44,
-    "contributed7d": "98.540457770282801659",
-    "contributed24h": "31.088403471576270494",
-    "won7d": "7.4015"
+    "price": 3436.16,
+    "contributed7d": "5.802987242858944453",
+    "contributed24h": "4.514801158496983506",
+    "won7d": "0"
   },
   {
     "vault": "0xce8293f586091d48a0ce761bbf85d5bcaa1b8d2b",
-    "poolers": 46,
+    "poolers": 43,
     "name": "Prize DAI - Aave",
     "symbol": "pDAI",
     "decimals": 18,
@@ -51,14 +51,14 @@
       "required": 0,
       "total": 0
     },
-    "price": 0.999711,
-    "contributed7d": "174.420515865161542423",
-    "contributed24h": "54.350220174096360228",
-    "won7d": "61.9289"
+    "price": 0.998246,
+    "contributed7d": "153.442179815312815695",
+    "contributed24h": "33.829255299260649128",
+    "won7d": "29.6534"
   },
   {
     "vault": "0xbd8fd33e53ab4120638c34cbd454112b39f6b382",
-    "poolers": 6,
+    "poolers": 5,
     "name": "Prize POOL - TokenVault",
     "symbol": "PPOOL",
     "decimals": 18,
@@ -70,7 +70,7 @@
       "required": -1,
       "total": 0
     },
-    "price": 0.422488,
+    "price": 0.264774,
     "contributed7d": "0.0",
     "contributed24h": "0.0",
     "won7d": "0"
@@ -89,7 +89,7 @@
       "required": -1,
       "total": 0
     },
-    "price": 0.996099,
+    "price": 0.993712,
     "contributed7d": "0.0",
     "contributed24h": "0.0",
     "won7d": "0"
@@ -129,7 +129,7 @@
     "contributed7d": "0.0",
     "contributed24h": "0.0",
     "won7d": "0",
-    "price": 0.996099
+    "price": 0.993712
   },
   {
     "vault": "0x2ef789080933cabbeb8ce364ce877fc54a6add06",
@@ -151,7 +151,7 @@
   },
   {
     "vault": "0x77935f2c72b5eb814753a05921ae495aa283906b",
-    "poolers": 44,
+    "poolers": 45,
     "name": "Prize USDC - Aave",
     "symbol": "pUSDC",
     "decimals": 6,
@@ -163,14 +163,14 @@
       "required": 2,
       "total": 3
     },
-    "price": 1.001,
-    "contributed7d": "658.693099384643538554",
-    "contributed24h": "184.10653120096321545",
-    "won7d": "194.26749999999998"
+    "price": 0.999529,
+    "contributed7d": "704.839819548403072579",
+    "contributed24h": "160.19305944494101057",
+    "won7d": "393.91049999999996"
   },
   {
     "vault": "0xf0b19f02c63d51b69563a2b675e0160e1c34397c",
-    "poolers": 171,
+    "poolers": 170,
     "name": "Prize WETH - Aave",
     "symbol": "pWETH",
     "decimals": 18,
@@ -182,10 +182,10 @@
       "required": 2,
       "total": 3
     },
-    "contributed7d": "934.244082822105954766",
-    "contributed24h": "290.506151249531936063",
-    "won7d": "236.5237",
-    "price": 3823.44
+    "contributed7d": "1121.188725864928975975",
+    "contributed24h": "368.469053118125728242",
+    "won7d": "702.3225",
+    "price": 3436.16
   },
   {
     "vault": "0xd32ceefc5fd9e8a67b1a02e4d35c9f460c05ad2c",
@@ -201,7 +201,7 @@
       "required": -1,
       "total": 0
     },
-    "price": 4.6,
+    "price": 3.55,
     "contributed7d": "0.0",
     "contributed24h": "0.0",
     "won7d": "0"
@@ -223,7 +223,7 @@
     "contributed7d": "0.0",
     "contributed24h": "0.0",
     "won7d": "0",
-    "price": 4.6
+    "price": 3.55
   },
   {
     "vault": "0x457b69984315b53a1d8130b03b618cd98dd482a1",
@@ -239,7 +239,7 @@
       "required": -1,
       "total": 0
     },
-    "price": 4.6,
+    "price": 3.55,
     "contributed7d": "0.0",
     "contributed24h": "0.0",
     "won7d": "0"

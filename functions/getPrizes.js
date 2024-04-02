@@ -2,22 +2,23 @@ const ethers = require("ethers")
 const {ABI} = require("../constants/abi")
 const {PROVIDERS} = require("../constants/providers")
 
-async function GetPrizes(prizepoolAddress,pooltokenAddress) {
- const prizepoolContract = new ethers.Contract(prizepoolAddress,ABI.PRIZEPOOLFINAL,PROVIDERS.OPTIMISM)
-  const poolTokenContract = new ethers.Contract(pooltokenAddress,ABI.ERC20,PROVIDERS.OPTIMISM)     
+async function GetPrizes(chainName,prizepoolAddress) {
+ const prizepoolContract = new ethers.Contract(prizepoolAddress,ABI.PRIZEPOOLFINAL,PROVIDERS[chainName])
 
   try {
          const [
           drawPeriodSeconds,
           nextDrawId,
           numberOfTiers,
-          prizePoolPOOLBalance,
+          prizetokenAddress
         ] = await Promise.all([
           prizepoolContract.drawPeriodSeconds(),
           prizepoolContract.getOpenDrawId(),
           prizepoolContract.numberOfTiers(),
-          poolTokenContract.balanceOf(prizepoolAddress),
+          prizepoolContract.prizeToken()
         ]);
+  const prizeTokenContract = new ethers.Contract(prizetokenAddress,ABI.ERC20,PROVIDERS[chainName])
+        const prizePoolPOOLBalance = await  prizeTokenContract.balanceOf(prizepoolAddress)
         let tierPrizeValues = [];
         let tierData = [];
         const multicallData = [];

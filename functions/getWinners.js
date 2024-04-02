@@ -6,7 +6,7 @@ try{
         const currentDB = (prizePool === "") ? db : dbFinal;
 
     let winners = {};
-    const queryString = "SELECT * from wins WHERE network='" + chainId + "';";
+    const queryString = "SELECT * from wins WHERE network='" + chainId + "' and prizepool=LOWER('"+prizePool+"');";
     console.log(queryString)
     const query = await currentDB.any(queryString);
   
@@ -20,7 +20,7 @@ try{
         t: win.tier,
         // n: win.network,
         i: win.prizeindices,
-        c: win.claimedindices || []
+        //c: win.claimedindices || []
       };
       winners[win.draw].wins.push(forApi);
     });

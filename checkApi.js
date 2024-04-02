@@ -98,7 +98,7 @@ async function comparePrizeData(chainId, prizePoolAddress, drawNumber) {
 }
 
 // Example usage:
-comparePrizeData('10', '0xe32e5e1c5f0c80bd26def2d0ea5008c107000d6a', 94);
+comparePrizeData('10', '0xe32e5e1c5f0c80bd26def2d0ea5008c107000d6a', 152);
 const go = async () =>{for(x=1;x<140;x++){
 await comparePrizeData('10', '0xe32e5e1c5f0c80bd26def2d0ea5008c107000d6a',x)
 }}

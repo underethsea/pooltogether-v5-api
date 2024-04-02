@@ -24,12 +24,12 @@ const cnFinal = {
 async function GetClaims(chainId, prizePool, dbFinal) {
     try {
         let claims = {};
-        const queryString = "SELECT * from claims WHERE network=$1";
+        const queryString = "SELECT * from claims WHERE network=$1 and prizepool=LOWER($2)";
 
         // Decide which DB to use based on the prizePool value
         const currentDB = (prizePool === "") ? db : dbFinal;
 
-        const queryResults = await currentDB.any(queryString, [chainId]);
+        const queryResults = await currentDB.any(queryString, [chainId,prizePool]);
       
         queryResults.forEach((claim) => {
             if (!claims[claim.draw]) {

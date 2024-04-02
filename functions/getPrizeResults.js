@@ -2,11 +2,10 @@ const { dbFinal } = require('./dbConnection');
 const fs = require('fs');
 const path = require('path');
 
-// Adjust the path to point to the 'data' directory at the root
-const cacheFilePath = path.join(__dirname, '..', 'data', 'prizeResultsCache.json');
 
-async function fetchData(chainId, lastDraw) {
-    console.log(`Fetching data for chainId: ${chainId}, starting from draw: ${lastDraw}`);
+async function fetchData(chainId, prizePool,  lastDraw) {
+
+    console.log(`Fetching prize results from db chainId: ${chainId}, prizePool: ${prizePool} starting from draw: ${lastDraw}`);
     try {
         const query = `
 SELECT
@@ -18,33 +17,37 @@ SELECT
 FROM
     draws d
 LEFT JOIN
-    wins w ON d.draw = w.draw AND d.network = w.network AND d.network = $1
+    wins w ON d.draw = w.draw AND w.network = $1 AND LOWER(w.prizepool) = LOWER($3)
 LEFT JOIN LATERAL (
     SELECT
         COUNT(*) as claim_count
     FROM
         claims
     WHERE
-        claims.draw = w.draw AND claims.network = w.network AND claims.tier = w.tier AND claims.vault = w.vault AND claims.winner = w.pooler
+        claims.draw = w.draw AND claims.network = w.network AND claims.tier = w.tier AND claims.vault = w.vault AND claims.winner = LOWER(w.pooler) AND  LOWER(claims.prizepool) = LOWER(w.prizepool)
 ) c ON true
 WHERE
-    d.draw >= $2
+    d.draw >= $2 AND d.network = $1 AND LOWER(d.prizepool) = LOWER($3)
 GROUP BY
     d.draw, w.tier, d.tiervalues
 ORDER BY
     d.draw, w.tier;
+
         `;
-        const result = await dbFinal.any(query, [chainId, lastDraw]);
-        return result;
+//console.log(query,"paramas",chainId, lastDraw, prizePool)
+        const result = await dbFinal.any(query, [chainId, lastDraw, prizePool]);
+    
+    return result;
     } catch (err) {
         console.error('Error fetching data:', err);
         return [];
     }
 }
+async function GetPrizeResults(chainId, prizePool) {
+    const cacheFilePath = path.join(__dirname, '..', 'data', `prizeResultsCache_${chainId}_${prizePool}.json`);
 
-async function GetPrizeResults(chainId) {
     const startTime = Date.now();
-    console.log("Getting V5 prize results -----------------", startTime);
+    console.log("Getting prize results -----------------");
     let draws = []; // Initialize draws as an array
 
     try {
@@ -61,10 +64,10 @@ async function GetPrizeResults(chainId) {
     }
 
     const lastDraw = draws.length > 0 ? Math.max(...draws.map(d => d.draw)) : 0;
-
+console.log("last draw in cache file",lastDraw)
     try {
-        const rows = await fetchData(chainId, lastDraw + 1); // Fetch new data starting after the last cached draw
-
+        const rows = await fetchData(chainId, prizePool.toLowerCase(), lastDraw + 1); // Fetch new data starting after the last cached draw
+console.log("found ",rows.length,"new draws to include")
         rows.forEach(row => {
             let drawObj = draws.find(d => d.draw === row.draw);
             if (!drawObj) {
@@ -72,11 +75,24 @@ async function GetPrizeResults(chainId) {
                 draws.push(drawObj);
             }
 
+if (row.tier !== undefined && row.tiervalues && row.total_wins && row.total_claims !== undefined) {
+    try {
+        if (typeof row.tiervalues[row.tier] !== 'undefined' && row.tiervalues[row.tier] !== null) {
             drawObj.tiers[row.tier] = {
-                value: row.tiervalues[row.tier].toString(), // Adjust as necessary
+                value: row.tiervalues[row.tier].toString(),
                 totalWins: row.total_wins.toString(),
                 totalClaims: row.total_claims.toString()
             };
+        } else {
+            console.log(`Missing tiervalues for tier: ${row.tier} on chainId: ${chainId}`);
+        }
+    } catch (error) {
+        console.error(`Error processing row for tier: ${row.tier} on chainId: ${chainId}`, error);
+    }
+} else {
+    console.log(`One or more required attributes are missing in the row on chainId: ${chainId}`, row);
+}
+
         });
 
         // Sort draws by draw number if necessary
@@ -96,4 +112,5 @@ async function GetPrizeResults(chainId) {
 module.exports = { GetPrizeResults };
 
 // Example usage
-//GetPrizeResults(10);
+GetPrizeResults(11155420,"0x5e1b40e4249644a7d7589d1197ad0f1628e79fb1");
+//GetPrizeResults(10,"0xe32e5E1c5f0c80bD26Def2d0EA5008C107000d6A");
